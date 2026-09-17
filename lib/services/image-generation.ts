@@ -1,4 +1,4 @@
-import { generateText, experimental_generateImage as generateImage } from "ai"
+import { generateImage, generateText } from "ai"
 import { getImageModel } from "@/lib/providers"
 import type { ImageUseCase } from "@/lib/providers"
 
