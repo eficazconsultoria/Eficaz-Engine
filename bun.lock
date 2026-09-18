@@ -5,15 +5,6 @@
     "": {
       "name": "eficaz-engine",
       "dependencies": {
-        "next": "16.0.10",
-        "react": "19.2.0",
-        "react-dom": "19.2.0",
-      },
-    },
-    "src": {
-      "name": "my-v0-project",
-      "version": "0.1.0",
-      "dependencies": {
         "@ai-sdk/gateway": "^3.0.106",
         "@emotion/is-prop-valid": "latest",
         "@hookform/resolvers": "^3.10.0",
@@ -554,8 +545,6 @@
     "motion-dom": ["motion-dom@13.3.0", "", { "dependencies": { "motion-utils": "^13.3.0" } }, "sha512-AmAnB6pHdZ1vHGzWzuzteG6Q3j1lHKeX/lbST6jGlgm0cjvLUgaCk1xhOuPMOy5SgovN6wnnUdwFrkcsus7Ftg=="],
 
     "motion-utils": ["motion-utils@13.3.0", "", {}, "sha512-sgSschQp7EseHInIlR7hBbMuvet3RA0bs28KPZAXJcGKGdxHGvh1ogpYDilY3bOMtl73EqPNmp75sAKHYPU5sg=="],
-
-    "my-v0-project": ["my-v0-project@workspace:src"],
 
     "nanoid": ["nanoid@3.3.19", "", { "bin": { "nanoid": "bin/nanoid.cjs" } }, "sha512-Y2tUNy4ouw6tq5oDSKeQYGOyhkUBhNOcGV/02KC+6kd9eDGqdZd++mjMiIDilrBYvjEnCYvVtsuHCuP+okSfug=="],
 
