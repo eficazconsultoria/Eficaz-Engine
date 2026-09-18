@@ -126,7 +126,15 @@ export function Sidebar({ profile }: SidebarProps) {
   }
 
   const accessibleFeatures = FEATURE_ORDER.filter((feature) => hasAccess(profile.role, feature))
-  const aiFeatures = accessibleFeatures.filter((f) => f !== "my_account" && f !== "user_management" && f !== "client_management" && f !== "lead_prospecting")
+  const aiFeatures = accessibleFeatures.filter(
+    (f) =>
+      f !== "my_account" &&
+      f !== "user_management" &&
+      f !== "client_management" &&
+      f !== "lead_prospecting" &&
+      f !== "seo_texts" &&
+      f !== "post_texts",
+  )
   const managementFeatures = accessibleFeatures.filter((f) => f === "client_management" || f === "lead_prospecting")
   const accountFeatures = accessibleFeatures.filter((f) => f === "my_account" || f === "user_management")
 
