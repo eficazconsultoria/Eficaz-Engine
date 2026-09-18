@@ -103,7 +103,15 @@ export function MobileSidebar({ profile }: MobileSidebarProps) {
   }
 
   const accessibleFeatures = FEATURE_ORDER.filter((feature) => hasAccess(profile.role, feature))
-  const aiFeatures = accessibleFeatures.filter((f) => f !== "my_account" && f !== "user_management")
+  const aiFeatures = accessibleFeatures.filter(
+    (f) =>
+      f !== "my_account" &&
+      f !== "user_management" &&
+      f !== "client_management" &&
+      f !== "lead_prospecting" &&
+      f !== "seo_texts" &&
+      f !== "post_texts",
+  )
   const accountFeatures = accessibleFeatures.filter((f) => f === "my_account" || f === "user_management")
 
   const getInitials = (name: string) => {

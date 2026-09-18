@@ -71,21 +71,23 @@ export async function createUser(
     return { success: false, error: authError?.message || "Failed to create user" }
   }
 
-  // Profile will be auto-created via trigger, but let's update with correct data
+  const profileData = {
+    id: authData.user.id,
+    email,
+    name,
+    role,
+    user_class: userClass,
+    linked_client_id: linkedClientId,
+    active: true,
+  }
+
+  // A trigger may create the profile, but upsert also supports projects where it is absent.
   const { error: profileError } = await supabase
     .from("profiles")
-    .update({
-      email,
-      name,
-      role,
-      user_class: userClass,
-      linked_client_id: linkedClientId,
-      active: true,
-    })
-    .eq("id", authData.user.id)
+    .upsert(profileData, { onConflict: "id" })
 
   if (profileError) {
-    // Try to clean up auth user if profile update fails
+    // Keep Auth and profiles consistent when profile creation fails.
     await supabase.auth.admin.deleteUser(authData.user.id)
     return { success: false, error: "Failed to create profile" }
   }
@@ -186,11 +188,19 @@ export async function deleteUser(adminId: string, userId: string): Promise<{ suc
     return { success: false, error: "Cannot delete admin users" }
   }
 
-  // Delete auth user (will cascade to profile)
-  const { error } = await supabase.auth.admin.deleteUser(userId)
+  // Delete Auth first so the account cannot be used again. The profile FK may
+  // cascade automatically, but the explicit delete keeps both records consistent
+  // even when that constraint is not configured with ON DELETE CASCADE.
+  const { error: authError } = await supabase.auth.admin.deleteUser(userId)
 
-  if (error) {
-    return { success: false, error: "Failed to delete user" }
+  if (authError) {
+    return { success: false, error: "Failed to delete user authentication" }
+  }
+
+  const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId)
+
+  if (profileError) {
+    return { success: false, error: "User authentication deleted, but profile cleanup failed" }
   }
 
   // Log audit
