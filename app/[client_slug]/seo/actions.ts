@@ -2,8 +2,7 @@
 
 import { requireAuth, getProfile } from "@/lib/auth"
 import { getAgentPrompt, logGeneration, updateAgentPrompt, replacePlaceholders, type PromptVariables } from "@/lib/services/generation"
-import { generateText } from "ai"
-import { getActiveModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
 import { createClient } from "@/lib/supabase/server"
 import type { KeywordSuggestion } from "@/lib/types"
 
@@ -44,8 +43,7 @@ export async function researchKeywords(
 Analise o nicho e retorne dados precisos baseados nas tendencias atuais do ultimo mes.`
 
   try {
-    const { text } = await generateText({
-      model: getActiveModel("text"),
+    const { text } = await generateTextWithFallback({
       system: systemPrompt,
       prompt: `Analise a palavra-chave/produto: "${seedKeyword}"
 ${client ? `\nContexto do cliente:\n- Nome: ${client.name}\n- Segmento: ${client.segment}\n- Site: ${client.site || "Não informado"}` : ""}
@@ -193,8 +191,7 @@ export async function generateSeoText(
   const systemPrompt = processedPrompt.trim() || "Voce e um especialista em conteudo SEO."
 
   try {
-    const { text } = await generateText({
-      model: getActiveModel("text"),
+    const { text } = await generateTextWithFallback({
       system: systemPrompt,
       prompt: `Crie um texto SEO otimizado para ${pageTypeLabels[type] || type}.
 

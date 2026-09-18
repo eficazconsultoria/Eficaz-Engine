@@ -1,5 +1,22 @@
+import { gateway } from "@ai-sdk/gateway"
+import type { LanguageModel } from "ai"
+
 // AI Provider abstraction layer
 // Providers are configured via environment variables
+
+const DEFAULT_TEXT_MODELS = [
+  "openai/gpt-4o-mini",
+  "google/gemini-2.5-flash",
+] as const
+
+export function getTextModels(): string[] {
+  const configured = process.env.TEXT_MODEL?.trim()
+  return configured ? [configured, ...DEFAULT_TEXT_MODELS.filter((model) => model !== configured)] : [...DEFAULT_TEXT_MODELS]
+}
+
+export function getTextModel(modelId: string): LanguageModel {
+  return gateway(modelId)
+}
 
 export type ContentType = "text" | "image" | "video"
 
@@ -41,7 +58,7 @@ export function getActiveModel(type: ContentType, useCase?: ImageUseCase): strin
   
   // Default models for each content type
   const models: Record<ContentType, string> = {
-    text: process.env.TEXT_MODEL || "openai/gpt-4o",
+    text: getTextModels()[0],
     image: process.env.IMAGE_MODEL || "openai/dall-e-3",
     video: process.env.VIDEO_MODEL || "fal-ai/minimax/video-01",
   }
