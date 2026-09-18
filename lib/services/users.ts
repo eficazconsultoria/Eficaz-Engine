@@ -1,14 +1,32 @@
 import { createAdminClient } from "@/lib/supabase/server"
-import type { Profile, AuditLog, UserRole } from "@/lib/types"
+import type { Profile, AuditLog, UserRole, UserClass } from "@/lib/types"
 
 // Get all users (admin only) - uses admin client to bypass RLS
 export async function getAllUsers(): Promise<Profile[]> {
   const supabase = createAdminClient()
 
-  const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false })
+  // First get all profiles
+  const { data: profiles, error: profilesError } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: false })
 
-  if (error || !data) return []
-  return data as Profile[]
+  if (profilesError || !profiles) return []
+
+  // Get all clients to join manually
+  const { data: clients } = await supabase
+    .from("clients")
+    .select("id, name, slug")
+
+  // Map clients to profiles
+  const clientMap = new Map(clients?.map(c => [c.id, c]) || [])
+  
+  const profilesWithClients = profiles.map(profile => ({
+    ...profile,
+    linked_client: profile.linked_client_id ? clientMap.get(profile.linked_client_id) || null : null
+  }))
+
+  return profilesWithClients as Profile[]
 }
 
 // Get single user by ID - uses admin client for admin operations
@@ -28,8 +46,15 @@ export async function createUser(
   name: string,
   role: UserRole,
   password: string,
+  userClass: UserClass = "internal",
+  linkedClientId: string | null = null,
 ): Promise<{ success: boolean; user?: Profile; error?: string }> {
   const supabase = createAdminClient()
+
+  // Validate: if role is "cliente", user_class must be "client" and linked_client_id must be set
+  if (role === "cliente" && (!linkedClientId || userClass !== "client")) {
+    return { success: false, error: "Cliente users must have a linked client" }
+  }
 
   // Create auth user with admin API (requires service role)
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -53,6 +78,8 @@ export async function createUser(
       email,
       name,
       role,
+      user_class: userClass,
+      linked_client_id: linkedClientId,
       active: true,
     })
     .eq("id", authData.user.id)
@@ -64,7 +91,7 @@ export async function createUser(
   }
 
   // Log audit
-  await createAuditLog(adminId, "user_created", authData.user.id, { email, name, role })
+  await createAuditLog(adminId, "user_created", authData.user.id, { email, name, role, userClass, linkedClientId })
 
   const user = await getUserById(authData.user.id)
   return { success: true, user: user || undefined }
@@ -74,15 +101,29 @@ export async function createUser(
 export async function updateUser(
   adminId: string,
   userId: string,
-  updates: { email?: string; name?: string; role?: UserRole; password?: string },
+  updates: { 
+    email?: string
+    name?: string
+    role?: UserRole
+    password?: string
+    user_class?: UserClass
+    linked_client_id?: string | null
+  },
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createAdminClient()
+
+  // Validate: if role is "cliente", user_class must be "client" and linked_client_id must be set
+  if (updates.role === "cliente" && (!updates.linked_client_id || updates.user_class !== "client")) {
+    return { success: false, error: "Cliente users must have a linked client" }
+  }
 
   // Update profile
   const profileUpdates: Partial<Profile> = {}
   if (updates.email) profileUpdates.email = updates.email
   if (updates.name) profileUpdates.name = updates.name
   if (updates.role) profileUpdates.role = updates.role
+  if (updates.user_class) profileUpdates.user_class = updates.user_class
+  if (updates.linked_client_id !== undefined) profileUpdates.linked_client_id = updates.linked_client_id
 
   if (Object.keys(profileUpdates).length > 0) {
     const { error: profileError } = await supabase.from("profiles").update(profileUpdates).eq("id", userId)

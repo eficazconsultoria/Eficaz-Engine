@@ -31,8 +31,8 @@ import {
   History,
   ChevronRight,
 } from "lucide-react"
-import type { Profile, AuditLog, UserRole } from "@/lib/types"
-import { ROLE_LABELS } from "@/lib/rbac"
+import type { Profile, AuditLog, UserRole, UserClass, Client } from "@/lib/types"
+import { ROLE_LABELS, USER_CLASS_LABELS } from "@/lib/rbac"
 import { createNewUser, updateExistingUser, toggleUserStatus, removeUser } from "./actions"
 import {
   Dialog,
@@ -65,6 +65,7 @@ interface UserManagementProps {
   users: Profile[]
   auditLogs: AuditLog[]
   currentUserId: string
+  clients: Client[]
 }
 
 const ALL_ROLES: UserRole[] = [
@@ -77,6 +78,7 @@ const ALL_ROLES: UserRole[] = [
   "comercial",
   "design",
   "seo",
+  "cliente",
 ]
 
 const ROLE_COLORS: Record<UserRole, string> = {
@@ -89,6 +91,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
   comercial: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
   design: "bg-orange-500/10 text-orange-500 border-orange-500/20",
   seo: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+  cliente: "bg-teal-500/10 text-teal-500 border-teal-500/20",
 }
 
 const ROLE_AVATAR_COLORS: Record<UserRole, string> = {
@@ -101,6 +104,7 @@ const ROLE_AVATAR_COLORS: Record<UserRole, string> = {
   comercial: "bg-gradient-to-br from-cyan-500 to-cyan-600",
   design: "bg-gradient-to-br from-orange-500 to-orange-600",
   seo: "bg-gradient-to-br from-indigo-500 to-indigo-600",
+  cliente: "bg-gradient-to-br from-teal-500 to-teal-600",
 }
 
 const AUDIT_ACTIONS: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -111,7 +115,7 @@ const AUDIT_ACTIONS: Record<string, { label: string; color: string; icon: React.
   user_reactivated: { label: "Usuario reativado", color: "text-green-500", icon: <UserCheck className="h-4 w-4" /> },
 }
 
-export function UserManagement({ users: initialUsers, auditLogs, currentUserId }: UserManagementProps) {
+export function UserManagement({ users: initialUsers, auditLogs, currentUserId, clients }: UserManagementProps) {
   const [users, setUsers] = useState(initialUsers)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingUser, setEditingUser] = useState<Profile | null>(null)
@@ -128,6 +132,8 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
     name: "",
     role: "marketing" as UserRole,
     password: "",
+    user_class: "internal" as UserClass,
+    linked_client_id: "" as string,
   })
 
   const filteredUsers = users.filter((user) => {
@@ -150,7 +156,7 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
   }
 
   const resetForm = () => {
-    setFormData({ email: "", name: "", role: "marketing", password: "" })
+    setFormData({ email: "", name: "", role: "marketing", password: "", user_class: "internal", linked_client_id: "" })
     setError(null)
   }
 
@@ -158,11 +164,20 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
     setIsLoading(true)
     setError(null)
 
+    // Validation for client users
+    if (formData.role === "cliente" && !formData.linked_client_id) {
+      setError("Usuarios com cargo 'Cliente' precisam ter um cliente vinculado")
+      setIsLoading(false)
+      return
+    }
+
     const data = new FormData()
     data.set("email", formData.email)
     data.set("name", formData.name)
     data.set("role", formData.role)
     data.set("password", formData.password)
+    data.set("user_class", formData.role === "cliente" ? "client" : "internal")
+    data.set("linked_client_id", formData.role === "cliente" ? formData.linked_client_id : "")
 
     const result = await createNewUser(data)
 
@@ -183,11 +198,20 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
     setIsLoading(true)
     setError(null)
 
+    // Validation for client users
+    if (formData.role === "cliente" && !formData.linked_client_id) {
+      setError("Usuarios com cargo 'Cliente' precisam ter um cliente vinculado")
+      setIsLoading(false)
+      return
+    }
+
     const data = new FormData()
     data.set("email", formData.email)
     data.set("name", formData.name)
     data.set("role", formData.role)
     if (formData.password) data.set("password", formData.password)
+    data.set("user_class", formData.role === "cliente" ? "client" : "internal")
+    data.set("linked_client_id", formData.role === "cliente" ? formData.linked_client_id : "")
 
     const result = await updateExistingUser(editingUser.id, data)
 
@@ -195,7 +219,14 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
       setUsers(
         users.map((u) =>
           u.id === editingUser.id
-            ? { ...u, email: formData.email, name: formData.name, role: formData.role as UserRole }
+            ? { 
+                ...u, 
+                email: formData.email, 
+                name: formData.name, 
+                role: formData.role as UserRole,
+                user_class: formData.role === "cliente" ? "client" : "internal",
+                linked_client_id: formData.role === "cliente" ? formData.linked_client_id : null,
+              }
             : u,
         ),
       )
@@ -238,6 +269,8 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
       name: user.name,
       role: user.role,
       password: "",
+      user_class: user.user_class || "internal",
+      linked_client_id: user.linked_client_id || "",
     })
     setEditingUser(user)
     setError(null)
@@ -467,9 +500,16 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
                   </div>
 
                   <div className="mt-4 flex items-center justify-between">
-                    <Badge variant="outline" className={`${ROLE_COLORS[user.role]} border`}>
-                      {ROLE_LABELS[user.role]}
-                    </Badge>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className={`${ROLE_COLORS[user.role]} border`}>
+                        {ROLE_LABELS[user.role]}
+                      </Badge>
+                      {user.user_class === "client" && user.linked_client && (
+                        <Badge variant="outline" className="bg-teal-500/10 text-teal-600 border-teal-500/20 text-xs">
+                          {user.linked_client.name}
+                        </Badge>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-2">
                       <Badge
@@ -598,7 +638,7 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
               <Label htmlFor="create-role">Cargo</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value: UserRole) => setFormData({ ...formData, role: value })}
+                onValueChange={(value: UserRole) => setFormData({ ...formData, role: value, linked_client_id: "" })}
               >
                 <SelectTrigger id="create-role" className="bg-muted/50">
                   <SelectValue />
@@ -615,6 +655,30 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
                 </SelectContent>
               </Select>
             </div>
+
+            {formData.role === "cliente" && (
+              <div className="grid gap-2">
+                <Label htmlFor="create-client">Cliente Vinculado *</Label>
+                <Select
+                  value={formData.linked_client_id}
+                  onValueChange={(value) => setFormData({ ...formData, linked_client_id: value })}
+                >
+                  <SelectTrigger id="create-client" className="bg-muted/50">
+                    <SelectValue placeholder="Selecione o cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Este usuario tera acesso somente aos analytics do cliente selecionado.
+                </p>
+              </div>
+            )}
 
             <div className="grid gap-2">
               <Label htmlFor="create-password">Senha temporaria</Label>
@@ -693,7 +757,7 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
               <Label htmlFor="edit-role">Cargo</Label>
               <Select
                 value={formData.role}
-                onValueChange={(value: UserRole) => setFormData({ ...formData, role: value })}
+                onValueChange={(value: UserRole) => setFormData({ ...formData, role: value, linked_client_id: "" })}
               >
                 <SelectTrigger id="edit-role" className="bg-muted/50">
                   <SelectValue />
@@ -710,6 +774,30 @@ export function UserManagement({ users: initialUsers, auditLogs, currentUserId }
                 </SelectContent>
               </Select>
             </div>
+
+            {formData.role === "cliente" && (
+              <div className="grid gap-2">
+                <Label htmlFor="edit-client">Cliente Vinculado *</Label>
+                <Select
+                  value={formData.linked_client_id}
+                  onValueChange={(value) => setFormData({ ...formData, linked_client_id: value })}
+                >
+                  <SelectTrigger id="edit-client" className="bg-muted/50">
+                    <SelectValue placeholder="Selecione o cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Este usuario tera acesso somente aos analytics do cliente selecionado.
+                </p>
+              </div>
+            )}
 
             <div className="grid gap-2">
               <Label htmlFor="edit-password">Nova senha (opcional)</Label>

@@ -21,6 +21,9 @@ import {
   PanelLeftClose,
   PanelLeft,
   Settings,
+  Building2,
+  Briefcase,
+  Target,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -53,6 +56,8 @@ const FEATURE_ICONS: Record<FeatureKey, React.ComponentType<{ className?: string
   seo_texts: Search,
   my_account: User,
   user_management: Users,
+  client_management: Building2,
+  lead_prospecting: Target,
 }
 
 const FEATURE_ROUTES: Record<FeatureKey, string> = {
@@ -65,6 +70,8 @@ const FEATURE_ROUTES: Record<FeatureKey, string> = {
   seo_texts: "/dashboard/seo",
   my_account: "/dashboard/account",
   user_management: "/dashboard/users",
+  client_management: "/dashboard/clients",
+  lead_prospecting: "/dashboard/prospeccao",
 }
 
 const FEATURE_ORDER: FeatureKey[] = [
@@ -75,6 +82,8 @@ const FEATURE_ORDER: FeatureKey[] = [
   "site_banners",
   "whatsapp_dispatcher",
   "seo_texts",
+  "lead_prospecting",
+  "client_management",
   "my_account",
   "user_management",
 ]
@@ -117,7 +126,8 @@ export function Sidebar({ profile }: SidebarProps) {
   }
 
   const accessibleFeatures = FEATURE_ORDER.filter((feature) => hasAccess(profile.role, feature))
-  const aiFeatures = accessibleFeatures.filter((f) => f !== "my_account" && f !== "user_management")
+  const aiFeatures = accessibleFeatures.filter((f) => f !== "my_account" && f !== "user_management" && f !== "client_management" && f !== "lead_prospecting")
+  const managementFeatures = accessibleFeatures.filter((f) => f === "client_management" || f === "lead_prospecting")
   const accountFeatures = accessibleFeatures.filter((f) => f === "my_account" || f === "user_management")
 
   const getInitials = (name: string) => {
@@ -243,6 +253,62 @@ export function Sidebar({ profile }: SidebarProps) {
               )
             })}
           </div>
+
+          {/* Management Features Section */}
+          {managementFeatures.length > 0 && (
+            <>
+              {showExpanded ? (
+                <div className="mb-2 mt-6 flex items-center gap-2 px-3 animate-in fade-in duration-200">
+                  <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Gestao
+                  </span>
+                </div>
+              ) : (
+                <div className="my-4 mx-2 border-t border-border/50" />
+              )}
+              <div className="space-y-1">
+                {managementFeatures.map((feature) => {
+                  const Icon = FEATURE_ICONS[feature]
+                  const isActive = pathname === FEATURE_ROUTES[feature]
+
+                  return (
+                    <Tooltip key={feature}>
+                      <TooltipTrigger asChild>
+                        <Link href={FEATURE_ROUTES[feature]}>
+                          <Button
+                            variant={isActive ? "secondary" : "ghost"}
+                            className={cn(
+                              "w-full transition-all duration-200",
+                              !showExpanded ? "justify-center px-0" : "justify-start px-3",
+                              isActive
+                                ? "bg-primary/10 text-primary hover:bg-primary/15 shadow-sm"
+                                : "hover:bg-muted/50",
+                            )}
+                            size={!showExpanded ? "icon" : "default"}
+                          >
+                            <Icon
+                              className={cn(
+                                "h-[18px] w-[18px] shrink-0 transition-colors",
+                                showExpanded && "mr-3",
+                                isActive && "text-primary",
+                              )}
+                            />
+                            {showExpanded && (
+                              <span className="truncate animate-in fade-in duration-200">
+                                {FEATURE_LABELS[feature]}
+                              </span>
+                            )}
+                          </Button>
+                        </Link>
+                      </TooltipTrigger>
+                      {!showExpanded && <TooltipContent side="right">{FEATURE_LABELS[feature]}</TooltipContent>}
+                    </Tooltip>
+                  )
+                })}
+              </div>
+            </>
+          )}
 
           {/* Account Features Section */}
           {accountFeatures.length > 0 && (

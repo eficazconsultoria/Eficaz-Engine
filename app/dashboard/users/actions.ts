@@ -27,7 +27,10 @@ export async function createNewUser(formData: FormData) {
   }
 
   const { email, name, role, password } = validation.data
-  const result = await createUser(profile.id, email, name, role, password)
+  const userClass = formData.get("user_class") as "internal" | "client" || "internal"
+  const linkedClientId = formData.get("linked_client_id") as string || null
+  
+  const result = await createUser(profile.id, email, name, role, password, userClass, linkedClientId || null)
   return result
 }
 
@@ -54,7 +57,14 @@ export async function updateExistingUser(userId: string, formData: FormData) {
     return { success: false, error: firstError?.message || "Dados invalidos" }
   }
 
-  const result = await updateUser(profile.id, userId, validation.data)
+  const userClass = formData.get("user_class") as "internal" | "client" || "internal"
+  const linkedClientId = formData.get("linked_client_id") as string || null
+
+  const result = await updateUser(profile.id, userId, {
+    ...validation.data,
+    user_class: userClass,
+    linked_client_id: linkedClientId || null,
+  })
   return result
 }
 

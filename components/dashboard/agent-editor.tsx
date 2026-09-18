@@ -3,21 +3,43 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { ChevronDown, ChevronUp, Save, Loader2, Bot, Code, AlertCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { ChevronDown, ChevronUp, Save, Loader2, Bot, Code, AlertCircle, Copy, Check } from "lucide-react"
 import type { AgentPrompt } from "@/lib/types"
 import { cn } from "@/lib/utils"
+
+export interface PlaceholderVariable {
+  key: string
+  label: string
+  description?: string
+  category: "client" | "form" | "other"
+}
 
 interface AgentEditorProps {
   prompt: AgentPrompt
   onSave: (content: string) => Promise<void>
   title?: string
+  variables?: PlaceholderVariable[]
 }
 
-export function AgentEditor({ prompt, onSave, title = "Editor do Agente" }: AgentEditorProps) {
+export function AgentEditor({ prompt, onSave, title = "Editor do Agente", variables = [] }: AgentEditorProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [content, setContent] = useState(prompt.content_md)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const [copiedVar, setCopiedVar] = useState<string | null>(null)
+
+  const handleCopyVariable = async (key: string) => {
+    const placeholder = `{{${key}}}`
+    await navigator.clipboard.writeText(placeholder)
+    setCopiedVar(key)
+    setTimeout(() => setCopiedVar(null), 1500)
+  }
+
+  // Group variables by category
+  const clientVars = variables.filter(v => v.category === "client")
+  const formVars = variables.filter(v => v.category === "form")
+  const otherVars = variables.filter(v => v.category === "other")
 
   const handleContentChange = (value: string) => {
     setContent(value)
@@ -79,16 +101,86 @@ export function AgentEditor({ prompt, onSave, title = "Editor do Agente" }: Agen
           isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
       >
-        <div className="overflow-hidden">
-          <div className="space-y-4 border-t border-border/50 p-5">
-            <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">
-              <Code className="h-4 w-4 shrink-0" />
-              <span>
-                Use Markdown para formatar o prompt. Variáveis disponíveis: {"{produto}"}, {"{estilo}"}, etc.
-              </span>
-            </div>
+          <div className="overflow-hidden">
+            <div className="space-y-4 border-t border-border/50 p-5">
+              {variables.length > 0 ? (
+                <div className="space-y-3 rounded-lg bg-secondary/50 p-4">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Code className="h-4 w-4 shrink-0 text-primary" />
+                    <span>Variaveis Dinamicas Disponiveis</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Clique em uma variavel para copiar. Use no formato {"{{variavel}}"} no prompt.
+                  </p>
+                  
+                  {clientVars.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Contexto do Cliente</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {clientVars.map((v) => (
+                          <Badge 
+                            key={v.key} 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-primary/10 hover:border-primary/50 transition-colors font-mono text-xs gap-1"
+                            onClick={() => handleCopyVariable(v.key)}
+                            title={v.description || v.label}
+                          >
+                            {copiedVar === v.key ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                            {`{{${v.key}}}`}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {formVars.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Campos do Formulario</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {formVars.map((v) => (
+                          <Badge 
+                            key={v.key} 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-primary/10 hover:border-primary/50 transition-colors font-mono text-xs gap-1"
+                            onClick={() => handleCopyVariable(v.key)}
+                            title={v.description || v.label}
+                          >
+                            {copiedVar === v.key ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                            {`{{${v.key}}}`}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-            <Textarea
+                  {otherVars.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Outros</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {otherVars.map((v) => (
+                          <Badge 
+                            key={v.key} 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-primary/10 hover:border-primary/50 transition-colors font-mono text-xs gap-1"
+                            onClick={() => handleCopyVariable(v.key)}
+                            title={v.description || v.label}
+                          >
+                            {copiedVar === v.key ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                            {`{{${v.key}}}`}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3 text-sm text-muted-foreground">
+                  <Code className="h-4 w-4 shrink-0" />
+                  <span>Use Markdown para formatar o prompt.</span>
+                </div>
+              )}
+
+              <Textarea
               value={content}
               onChange={(e) => handleContentChange(e.target.value)}
               className="min-h-[300px] resize-none rounded-xl border-border/50 bg-secondary/30 font-mono text-sm transition-all focus:border-primary focus:bg-background"

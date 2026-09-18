@@ -22,6 +22,7 @@ import {
   Play,
   Lightbulb,
   Rocket,
+  Target,
 } from "lucide-react"
 import type { FeatureKey } from "@/lib/rbac"
 import { cn } from "@/lib/utils"
@@ -37,6 +38,8 @@ const FEATURE_ICONS: Record<FeatureKey, React.ComponentType<{ className?: string
   seo_texts: Search,
   my_account: () => null,
   user_management: () => null,
+  client_management: () => null,
+  lead_prospecting: Target,
 }
 
 const FEATURE_ROUTES: Record<FeatureKey, string> = {
@@ -49,6 +52,8 @@ const FEATURE_ROUTES: Record<FeatureKey, string> = {
   seo_texts: "/dashboard/seo",
   my_account: "/dashboard/account",
   user_management: "/dashboard/users",
+  client_management: "/dashboard/clients",
+  lead_prospecting: "/dashboard/prospeccao",
 }
 
 const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
@@ -61,6 +66,8 @@ const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   seo_texts: "Conteúdo otimizado para ranquear no Google",
   my_account: "",
   user_management: "",
+  client_management: "",
+  lead_prospecting: "Importe e enriqueça leads B2B com dados reais usando IA",
 }
 
 const FEATURE_COLORS: Record<FeatureKey, { bg: string; icon: string; border: string }> = {
@@ -99,8 +106,14 @@ const FEATURE_COLORS: Record<FeatureKey, { bg: string; icon: string; border: str
     icon: "bg-cyan-500/10 text-cyan-500",
     border: "group-hover:border-cyan-500/30",
   },
+  lead_prospecting: {
+    bg: "from-amber-500/10 via-amber-500/5 to-transparent",
+    icon: "bg-amber-500/10 text-amber-500",
+    border: "group-hover:border-amber-500/30",
+  },
   my_account: { bg: "", icon: "", border: "" },
   user_management: { bg: "", icon: "", border: "" },
+  client_management: { bg: "", icon: "", border: "" },
 }
 
 const QUICK_TIPS = [
@@ -110,10 +123,11 @@ const QUICK_TIPS = [
 ]
 
 export default async function DashboardPage() {
+  // Note: Client users are blocked at layout level and redirected to their analytics page
   const profile = await requireAuth()
 
   const accessibleFeatures = getAccessibleFeatures(profile.role).filter(
-    (f) => f !== "my_account" && f !== "user_management",
+    (f) => f !== "my_account" && f !== "user_management" && f !== "client_management" && f !== "lead_prospecting",
   )
 
   const firstName = profile.name?.split(" ")[0] || "Usuário"

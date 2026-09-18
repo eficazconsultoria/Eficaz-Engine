@@ -15,6 +15,8 @@ import {
   Home,
   Sparkles,
   ArrowRight,
+  Building2,
+  Target,
 } from "lucide-react"
 import {
   CommandDialog,
@@ -45,6 +47,8 @@ const FEATURE_ICONS: Record<FeatureKey | "home", React.ComponentType<{ className
   seo_texts: Search,
   my_account: User,
   user_management: Users,
+  client_management: Building2,
+  lead_prospecting: Target,
 }
 
 const FEATURE_ROUTES: Record<FeatureKey | "home", string> = {
@@ -58,6 +62,8 @@ const FEATURE_ROUTES: Record<FeatureKey | "home", string> = {
   seo_texts: "/dashboard/seo",
   my_account: "/dashboard/account",
   user_management: "/dashboard/users",
+  client_management: "/dashboard/clients",
+  lead_prospecting: "/dashboard/prospeccao",
 }
 
 const FEATURE_DESCRIPTIONS: Record<FeatureKey | "home", string> = {
@@ -71,6 +77,8 @@ const FEATURE_DESCRIPTIONS: Record<FeatureKey | "home", string> = {
   seo_texts: "Gerar textos otimizados para SEO",
   my_account: "Gerenciar suas informacoes pessoais",
   user_management: "Gerenciar usuarios do sistema",
+  client_management: "Gerenciar clientes",
+  lead_prospecting: "Importar e enriquecer leads B2B",
 }
 
 const FEATURE_COLORS: Record<FeatureKey | "home", string> = {
@@ -84,6 +92,8 @@ const FEATURE_COLORS: Record<FeatureKey | "home", string> = {
   seo_texts: "text-cyan-500",
   my_account: "text-slate-500",
   user_management: "text-amber-500",
+  client_management: "text-teal-500",
+  lead_prospecting: "text-yellow-500",
 }
 
 export function CommandSearch({ open, onOpenChange, userRole }: CommandSearchProps) {

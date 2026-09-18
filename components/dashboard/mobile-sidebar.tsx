@@ -19,6 +19,8 @@ import {
   Sparkles,
   Settings,
   ChevronRight,
+  Building2,
+  Target,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { type FeatureKey, FEATURE_LABELS, hasAccess, ROLE_LABELS } from "@/lib/rbac"
@@ -43,6 +45,8 @@ const FEATURE_ICONS: Record<FeatureKey, React.ComponentType<{ className?: string
   seo_texts: Search,
   my_account: User,
   user_management: Users,
+  client_management: Building2,
+  lead_prospecting: Target,
 }
 
 const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
@@ -55,6 +59,8 @@ const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   seo_texts: "Otimize textos para buscas",
   my_account: "Gerencie seus dados",
   user_management: "Administre usuarios",
+  client_management: "Gerencie clientes",
+  lead_prospecting: "Enriqueça leads B2B",
 }
 
 const FEATURE_ROUTES: Record<FeatureKey, string> = {
@@ -67,6 +73,8 @@ const FEATURE_ROUTES: Record<FeatureKey, string> = {
   seo_texts: "/dashboard/seo",
   my_account: "/dashboard/account",
   user_management: "/dashboard/users",
+  client_management: "/dashboard/clients",
+  lead_prospecting: "/dashboard/prospeccao",
 }
 
 const FEATURE_ORDER: FeatureKey[] = [
@@ -77,6 +85,8 @@ const FEATURE_ORDER: FeatureKey[] = [
   "site_banners",
   "whatsapp_dispatcher",
   "seo_texts",
+  "lead_prospecting",
+  "client_management",
   "my_account",
   "user_management",
 ]

@@ -86,3 +86,7 @@ export async function requireAdmin(): Promise<Profile> {
 
   return profile
 }
+
+export async function requireClientManagement(): Promise<Profile> {
+  return requireFeatureAccess("client_management")
+}

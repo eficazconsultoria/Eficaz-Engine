@@ -11,6 +11,8 @@ export type FeatureKey =
   | "seo_texts"
   | "my_account"
   | "user_management"
+  | "client_management"
+  | "lead_prospecting"
 
 // Role permissions for each feature
 export const FEATURE_PERMISSIONS: Record<FeatureKey, UserRole[]> = {
@@ -23,6 +25,8 @@ export const FEATURE_PERMISSIONS: Record<FeatureKey, UserRole[]> = {
   seo_texts: ["admin", "seo", "marketing", "redacao"],
   my_account: ["admin", "performance", "marketing", "projetos", "sucesso", "redacao", "comercial", "design", "seo"],
   user_management: ["admin"],
+  client_management: ["admin", "seo", "marketing", "projetos"],
+  lead_prospecting: ["admin", "comercial", "marketing"],
 }
 
 // Feature display names
@@ -36,6 +40,8 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   seo_texts: "Textos SEO",
   my_account: "Minha Conta",
   user_management: "Gerenciar Usuários",
+  client_management: "Clientes",
+  lead_prospecting: "Prospecção",
 }
 
 // Role display names
@@ -49,6 +55,18 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   comercial: "Comercial",
   design: "Design",
   seo: "SEO",
+  cliente: "Cliente",
+}
+
+// User class display names
+export const USER_CLASS_LABELS: Record<string, string> = {
+  internal: "Interno",
+  client: "Cliente",
+}
+
+// Check if user is a client user (external)
+export function isClientUser(role: UserRole): boolean {
+  return role === "cliente"
 }
 
 // Check if a role has access to a feature
@@ -64,4 +82,9 @@ export function getAccessibleFeatures(role: UserRole): FeatureKey[] {
 // Check if user is admin
 export function isAdmin(role: UserRole): boolean {
   return role === "admin"
+}
+
+// Check if user can manage/test prompts (admin, seo, or marketing)
+export function canManagePrompts(role: UserRole): boolean {
+  return role === "admin" || role === "seo" || role === "marketing"
 }

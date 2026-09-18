@@ -13,6 +13,7 @@ export const userRoleSchema = z.enum([
   "comercial",
   "design",
   "seo",
+  "cliente",
 ])
 
 // Validacao de email

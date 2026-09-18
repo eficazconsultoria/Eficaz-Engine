@@ -1,6 +1,58 @@
 import { createClient } from "@/lib/supabase/server"
 import type { AgentPrompt, GenerationLog } from "@/lib/types"
 
+// Available placeholder variables for dynamic prompts
+export interface PromptVariables {
+  // Client context
+  client_name?: string
+  client_segment?: string
+  client_site?: string
+  client_target_audience?: string
+  client_focus?: string
+  
+  // Form fields (posts)
+  type?: string
+  topic?: string
+  tone?: string
+  persona?: string
+  objective?: string
+  additionalInfo?: string
+  hashtags?: string
+  
+  // SEO fields
+  keyword?: string
+  searchIntent?: string
+  contentLength?: string
+  targetUrl?: string
+  
+  // Generic
+  [key: string]: string | undefined
+}
+
+/**
+ * Replace placeholders in a prompt template with actual values.
+ * Placeholders format: {{variable_name}}
+ * 
+ * Example usage in agent prompt:
+ * "Crie um post para {{client_name}} sobre {{topic}} usando tom {{tone}}"
+ */
+export function replacePlaceholders(template: string, variables: PromptVariables): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    const value = variables[key]
+    return value !== undefined && value !== null && value !== "" 
+      ? value 
+      : `[${key} nao informado]`
+  })
+}
+
+/**
+ * Extract all placeholder names from a template
+ */
+export function extractPlaceholders(template: string): string[] {
+  const matches = template.match(/\{\{(\w+)\}\}/g) || []
+  return [...new Set(matches.map(m => m.replace(/\{\{|\}\}/g, '')))]
+}
+
 // Get agent prompt by key
 export async function getAgentPrompt(key: string): Promise<AgentPrompt | null> {
   const supabase = await createClient()

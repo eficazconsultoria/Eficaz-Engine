@@ -106,6 +106,9 @@ export function HtmlEditor({ value, onChange }: HtmlEditorProps) {
     exec("unlink")
   }, [exec])
 
+  // Track if the editor is focused to avoid overwriting user input
+  const isFocusedRef = useRef(false)
+
   // Handle visual editor input
   const handleInput = useCallback(() => {
     if (editorRef.current) {
@@ -113,14 +116,23 @@ export function HtmlEditor({ value, onChange }: HtmlEditorProps) {
     }
   }, [onChange])
 
-  // Sync value to editor when switching to visual mode
+  // Sync value to editor only when switching to visual mode or when not focused
   useEffect(() => {
-    if (mode === "visual" && editorRef.current) {
+    if (mode === "visual" && editorRef.current && !isFocusedRef.current) {
       if (editorRef.current.innerHTML !== value) {
         editorRef.current.innerHTML = value
       }
     }
   }, [mode, value])
+
+  // Handle focus/blur to track editor state
+  const handleFocus = useCallback(() => {
+    isFocusedRef.current = true
+  }, [])
+
+  const handleBlur = useCallback(() => {
+    isFocusedRef.current = false
+  }, [])
 
   // Resize handlers
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
@@ -382,6 +394,8 @@ export function HtmlEditor({ value, onChange }: HtmlEditorProps) {
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           className="outline-none focus:ring-2 focus:ring-primary/20 focus:ring-inset"
           style={{
             height: `${editorHeight}px`,
