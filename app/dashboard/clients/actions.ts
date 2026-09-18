@@ -3,8 +3,7 @@
 import { createClient as createSupabaseClient } from "@/lib/supabase/server"
 import { getUser, requireAuth, requireClientManagement } from "@/lib/auth"
 import type { Client, ClientSegment, ClientType, ClientFocus, ClientAIPrompt } from "@/lib/types"
-import { generateText } from "ai"
-import { getActiveModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
 
 export async function getClients(): Promise<{ clients: Client[]; error: string | null }> {
   try {
@@ -364,9 +363,8 @@ Categorias permitidas: reputation, comparison, solution, pre_purchase
 Retorne APENAS o JSON, sem explicacoes.`
 
   try {
-    const result = await generateText({
-      model: getActiveModel("text"),
-      prompt,
+    const result = await generateTextWithFallback({
+        prompt,
       temperature: 0.7,
     })
 

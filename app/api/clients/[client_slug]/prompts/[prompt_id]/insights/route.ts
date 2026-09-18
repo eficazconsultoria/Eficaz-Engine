@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { requireAuth, getProfile } from "@/lib/auth"
 import { canManagePrompts, isClientUser } from "@/lib/rbac"
 import { generateText } from "ai"
-import { gateway } from "@ai-sdk/gateway"
+import { generateTextWithFallback } from "@/lib/services/ai"
 
 export async function GET(
   request: Request,
@@ -209,9 +209,8 @@ Responda em JSON no formato:
 }`
 
     // Generate insights with AI
-    const result = await generateText({
-      model: gateway("openai/gpt-4o-mini"),
-      prompt: aiPrompt,
+    const result = await generateTextWithFallback({
+        prompt: aiPrompt,
       maxTokens: 2000,
     })
 

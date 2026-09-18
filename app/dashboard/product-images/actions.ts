@@ -3,8 +3,8 @@
 import { requireFeatureAccess } from "@/lib/auth"
 import { getAgentPrompt, logGeneration, updateAgentPrompt } from "@/lib/services/generation"
 import { generateImages } from "@/lib/services/image-generation"
-import { generateText } from "ai"
-import { getActiveModel, getImageModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
+import { getImageModel } from "@/lib/providers"
 import { productImagesSchema, validateFormData, contentSchema } from "@/lib/validation"
 
 export async function generateProductImages(formData: FormData) {
@@ -23,9 +23,8 @@ export async function generateProductImages(formData: FormData) {
 
   try {
     // Step 1: Generate detailed prompts for each image variation
-    const { text: promptsText } = await generateText({
-      model: getActiveModel("text"),
-      system: systemPrompt,
+    const { text: promptsText } = await generateTextWithFallback({
+        system: systemPrompt,
       prompt: `Crie ${quantity} prompts detalhados para gerar imagens do produto "${productName}".
       
 Descrição: ${description}

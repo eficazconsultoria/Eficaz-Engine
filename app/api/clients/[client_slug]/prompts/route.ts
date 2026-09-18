@@ -2,8 +2,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { requireAuth, getProfile } from "@/lib/auth"
 import { canManagePrompts, isClientUser } from "@/lib/rbac"
 import { NextResponse } from "next/server"
-import { generateText } from "ai"
-import { gateway } from "@ai-sdk/gateway"
+import { generateTextWithFallback } from "@/lib/services/ai"
 
 const MAX_PROMPTS = 8
 
@@ -193,9 +192,8 @@ Responda APENAS no formato JSON:
 {"prompt": "texto do prompt aqui", "category": "categoria_escolhida"}`
 
       try {
-        const result = await generateText({
-          model: gateway("openai/gpt-4o-mini"),
-          prompt: aiPrompt,
+        const result = await generateTextWithFallback({
+                prompt: aiPrompt,
           maxTokens: 200,
         })
 

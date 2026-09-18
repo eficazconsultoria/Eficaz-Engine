@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { generateObject } from "ai"
-import { gateway } from "@ai-sdk/gateway"
+import { generateObjectWithFallback } from "@/lib/services/ai"
 import { z } from "zod"
 import { NextResponse } from "next/server"
 
@@ -65,9 +64,8 @@ REGRAS:
 - Paginas de baixa prioridade: politicas, termos, paginas secundarias`
 
   try {
-    const { object: result } = await generateObject({
-      model: gateway("openai/gpt-4o-mini"),
-      schema: pagesSchema,
+    const { object: result } = await generateObjectWithFallback({
+        schema: pagesSchema,
       prompt: discoverPrompt,
     })
 

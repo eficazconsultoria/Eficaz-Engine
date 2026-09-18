@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 import { generateObject } from "ai"
-import { gateway } from "@ai-sdk/gateway"
+import { generateObjectWithFallback } from "@/lib/services/ai"
 import { z } from "zod"
 
 const contentIdeaSchema = z.object({
@@ -133,9 +133,8 @@ PLATAFORMAS:
 - Twitter/X: Threads e posts curtos e impactantes
 - Facebook: Posts para engajamento e comunidade`
 
-    const { object } = await generateObject({
-      model: gateway("openai/gpt-4o-mini"),
-      schema: contentIdeasSchema,
+    const { object } = await generateObjectWithFallback({
+        schema: contentIdeasSchema,
       prompt: aiPrompt,
     })
 

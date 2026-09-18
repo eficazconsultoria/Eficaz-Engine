@@ -2,7 +2,8 @@
 
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { generateText, Output } from "ai"
+import { Output } from "ai"
+import { generateTextWithFallback } from "@/lib/services/ai"
 import { z } from "zod"
 
 // ============================================================================
@@ -2148,9 +2149,8 @@ const AgentResumoInteligente = {
         },
       }
 
-      const result = await generateText({
-        model: "openai/gpt-4o-mini",
-        temperature: 0.3,
+      const result = await generateTextWithFallback({
+              temperature: 0.3,
         maxOutputTokens: 1000,
         output: Output.object({
           schema: z.object({

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { gateway } from "@ai-sdk/gateway"
-import { generateObject } from "ai"
+import { generateObjectWithFallback } from "@/lib/services/ai"
 import { z } from "zod"
 
 export async function POST(
@@ -69,9 +68,8 @@ Para cada prompt, indique:
 - Relevancia (1-10) para a empresa`
 
   try {
-    const { object: result } = await generateObject({
-      model: gateway("openai/gpt-4o-mini"),
-      schema: z.object({
+    const { object: result } = await generateObjectWithFallback({
+        schema: z.object({
         prompts: z.array(z.object({
           prompt: z.string().describe("O prompt/pergunta que o usuario faria"),
           intent: z.string().describe("A intencao do usuario (informacional, comparacao, compra, etc)"),

@@ -3,8 +3,8 @@
 import { requireFeatureAccess } from "@/lib/auth"
 import { getAgentPrompt, logGeneration, updateAgentPrompt } from "@/lib/services/generation"
 import { generateImages } from "@/lib/services/image-generation"
-import { generateText } from "ai"
-import { getActiveModel, getImageModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
+import { getImageModel } from "@/lib/providers"
 
 export async function generateBanners(formData: FormData) {
   const profile = await requireFeatureAccess("site_banners")
@@ -24,9 +24,8 @@ export async function generateBanners(formData: FormData) {
 
   try {
     // Step 1: Generate banner concept and image prompt
-    const { text } = await generateText({
-      model: getActiveModel("text"),
-      system: systemPrompt,
+    const { text } = await generateTextWithFallback({
+        system: systemPrompt,
       prompt: `Crie um conceito de banner para e-commerce.
       
 Objetivo: ${objective}

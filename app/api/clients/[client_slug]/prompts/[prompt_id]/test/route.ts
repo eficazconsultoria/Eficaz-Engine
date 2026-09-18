@@ -2,8 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAuth, getProfile } from "@/lib/auth"
 import { canManagePrompts, isClientUser } from "@/lib/rbac"
-import { generateText } from "ai"
-import { getActiveModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
 import type { SearchType } from "@/lib/types"
 
 export async function POST(
@@ -198,8 +197,7 @@ SENTIMENTO:
 Retorne APENAS o JSON, sem explicacoes antes ou depois.`
 
     // Call AI
-    const result = await generateText({
-      model: getActiveModel("text"),
+    const result = await generateTextWithFallback({
       prompt: analysisPrompt,
       temperature: 0.7,
     })

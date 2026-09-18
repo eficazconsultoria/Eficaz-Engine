@@ -2,8 +2,7 @@
 
 import { createClient as createSupabaseClient } from "@/lib/supabase/server"
 import { requireAuth } from "@/lib/auth"
-import { generateText } from "ai"
-import { getActiveModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
 import type { PromptTestResult, PromptAnalyticsSummary, Client, ClientAIPrompt, SearchType, Sentiment } from "@/lib/types"
 
 // Get prompt details with client info
@@ -152,9 +151,8 @@ IMPORTANTE:
 - Retorne APENAS o JSON, sem explicacoes adicionais`
 
     // Call AI
-    const result = await generateText({
-      model: getActiveModel("text"),
-      prompt: analysisPrompt,
+    const result = await generateTextWithFallback({
+        prompt: analysisPrompt,
       temperature: 0.7,
     })
 
