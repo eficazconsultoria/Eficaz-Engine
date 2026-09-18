@@ -3,8 +3,7 @@
 import { getProfile } from "@/lib/auth"
 import { getAgentPrompt, logGeneration, updateAgentPrompt, replacePlaceholders, type PromptVariables } from "@/lib/services/generation"
 import { generateSingleImage } from "@/lib/services/image-generation"
-import { generateText } from "ai"
-import { getActiveModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
 import { createClient } from "@/lib/supabase/server"
 import { put } from "@vercel/blob"
 
@@ -104,8 +103,7 @@ export async function generatePostText(
   const systemPrompt = processedPrompt.trim() || "Voce e um assistente especializado em criacao de conteudo para redes sociais e blogs."
 
   try {
-    const { text } = await generateText({
-      model: getActiveModel("text"),
+    const { text } = await generateTextWithFallback({
       system: systemPrompt,
       prompt: `Crie um texto ${type === "blog" ? "para blog" : `para ${type}`}.
 
@@ -171,8 +169,7 @@ export async function generateBlogSummary(
   if (!profile) return { success: false, error: "Nao autorizado" }
 
   try {
-    const { text } = await generateText({
-      model: getActiveModel("text"),
+    const { text } = await generateTextWithFallback({
       system: `Voce e um especialista em criar resumos concisos e atraentes para artigos de blog.
 Seu objetivo e criar um resumo que:
 - Seja curto e direto (maximo 2-3 frases ou 150 caracteres)
@@ -250,8 +247,7 @@ export async function generateBlogCoverImage(
     console.log("[v0] Starting cover image generation for topic:", topic)
     
     // First, generate a prompt for the image based on the blog content
-    const { text: imagePrompt } = await generateText({
-      model: getActiveModel("text"),
+    const { text: imagePrompt } = await generateTextWithFallback({
       system: `Voce e um especialista em criar prompts para geracao de imagens.
 Seu objetivo e criar um prompt que gere uma imagem de capa profissional para um artigo de blog.
 O prompt deve:
