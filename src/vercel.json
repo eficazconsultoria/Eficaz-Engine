@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-prompt-tests",
+      "schedule": "0 12 * * *"
+    }
+  ],
+  "buildCommand": "node .v0/inject-built-with-v0.mjs && next build"
+}
