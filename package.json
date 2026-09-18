@@ -2,6 +2,9 @@
   "name": "eficaz-engine",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "src"
+  ],
   "scripts": {
     "build": "cd src && bun run build",
     "dev": "cd src && bun run dev",
