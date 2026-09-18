@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { generateObject } from "ai"
-import { gateway } from "@ai-sdk/gateway"
+import { generateObjectWithFallback } from "@/lib/services/ai"
 import { z } from "zod"
 import { NextResponse } from "next/server"
 
@@ -136,9 +135,8 @@ REGRAS:
 - Seja REALISTA - base sua analise no que uma pagina desse segmento normalmente tem
 - Se nao conseguir verificar algo, use warning com descricao explicando`
 
-    const { object: auditResult } = await generateObject({
-      model: gateway("openai/gpt-4o-mini"),
-      schema: auditResultSchema,
+    const { object: auditResult } = await generateObjectWithFallback({
+        schema: auditResultSchema,
       prompt: auditPrompt,
     })
 

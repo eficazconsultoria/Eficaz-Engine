@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { gateway } from "@ai-sdk/gateway"
+import { generateObjectWithFallback } from "@/lib/services/ai"
 import { generateObject } from "ai"
 import { z } from "zod"
 
@@ -84,9 +84,8 @@ Para cada keyword, avalie:
 IMPORTANTE: Base suas estimativas em dados realistas do mercado brasileiro.`
 
   try {
-    const { object: result } = await generateObject({
-      model: gateway("openai/gpt-4o-mini"),
-      schema: z.object({
+    const { object: result } = await generateObjectWithFallback({
+        schema: z.object({
         keywords: z.array(z.object({
           keyword: z.string().describe("A palavra-chave sugerida"),
           search_volume: z.enum(["muito_alto", "alto", "medio", "baixo"]).describe("Volume de busca estimado"),

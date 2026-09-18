@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { generateText, Output } from "ai"
+import { Output } from "ai"
+import { generateTextWithFallback } from "@/lib/services/ai"
 import { z } from "zod"
 
 // Tipos de agentes disponíveis para re-indexação
@@ -374,9 +375,8 @@ async function reindexMarketplaces(nomeEmpresa: string | null, cnpj: string) {
 
   // Usar IA para inferir presença em marketplaces baseado no tipo de empresa
   try {
-    const result = await generateText({
-      model: "openai/gpt-4o-mini",
-      temperature: 0.1,
+    const result = await generateTextWithFallback({
+          temperature: 0.1,
       maxTokens: 200,
       prompt: `Analise se a empresa "${nomeEmpresa}" (CNPJ: ${cnpj}) provavelmente vende em marketplaces como Mercado Livre, Amazon, Shopee, Magalu ou Americanas.
 
@@ -439,9 +439,8 @@ REGRAS IMPORTANTES:
 Responda em JSON válido.`
 
   try {
-    const result = await generateText({
-      model: "openai/gpt-4o-mini",
-      temperature: 0.2,
+    const result = await generateTextWithFallback({
+          temperature: 0.2,
       maxTokens: 1000,
       output: Output.object({
         schema: z.object({

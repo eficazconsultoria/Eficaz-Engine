@@ -2,8 +2,7 @@
 
 import { requireFeatureAccess } from "@/lib/auth"
 import { getAgentPrompt, logGeneration, updateAgentPrompt } from "@/lib/services/generation"
-import { generateText } from "ai"
-import { getActiveModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
 
 export async function generatePostText(formData: FormData) {
   const profile = await requireFeatureAccess("post_texts")
@@ -20,9 +19,8 @@ export async function generatePostText(formData: FormData) {
   const systemPrompt = agent?.content_md || "You are a content writing assistant."
 
   try {
-    const { text } = await generateText({
-      model: getActiveModel("text"),
-      system: systemPrompt,
+    const { text } = await generateTextWithFallback({
+        system: systemPrompt,
       prompt: `Crie um texto ${type === "blog" ? "para blog" : "para redes sociais"}.
       
 Tema: ${topic}

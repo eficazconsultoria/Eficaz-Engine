@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { gateway } from "@ai-sdk/gateway"
-import { generateObject } from "ai"
+import { generateObjectWithFallback } from "@/lib/services/ai"
 import { z } from "zod"
 
 const analysisItemSchema = z.object({
@@ -121,9 +120,8 @@ export async function POST(
   const competitorsList = competitors?.map(c => c.name).join(", ") || "Nao informados"
 
   try {
-    const { object } = await generateObject({
-      model: gateway("openai/gpt-4o-mini"),
-      schema: reputationSchema,
+    const { object } = await generateObjectWithFallback({
+        schema: reputationSchema,
       prompt: `Voce e um especialista em analise de reputacao de marcas e branding.
 
 EMPRESA A SER ANALISADA:

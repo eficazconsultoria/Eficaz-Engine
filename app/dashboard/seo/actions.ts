@@ -2,8 +2,7 @@
 
 import { requireFeatureAccess } from "@/lib/auth"
 import { getAgentPrompt, logGeneration, updateAgentPrompt } from "@/lib/services/generation"
-import { generateText } from "ai"
-import { getActiveModel } from "@/lib/providers"
+import { generateTextWithFallback } from "@/lib/services/ai"
 import type { KeywordSuggestion } from "@/lib/types"
 
 export async function researchKeywords(seedKeyword: string): Promise<{
@@ -18,9 +17,8 @@ export async function researchKeywords(seedKeyword: string): Promise<{
 Analise o nicho e retorne dados precisos baseados nas tendências atuais do último mês.`
 
   try {
-    const { text } = await generateText({
-      model: getActiveModel("text"),
-      system: systemPrompt,
+    const { text } = await generateTextWithFallback({
+        system: systemPrompt,
       prompt: `Analise a palavra-chave/produto: "${seedKeyword}"
 
 Gere exatamente 15 sugestões de palavras-chave relacionadas para e-commerce/SEO.
@@ -89,9 +87,8 @@ export async function generateSeoText(formData: FormData) {
   const systemPrompt = agent?.content_md || "You are an SEO content specialist."
 
   try {
-    const { text } = await generateText({
-      model: getActiveModel("text"),
-      system: systemPrompt,
+    const { text } = await generateTextWithFallback({
+        system: systemPrompt,
       prompt: `Crie um texto SEO otimizado para ${type === "category" ? "página de categoria" : "página de produto"}.
       
 Palavra-chave principal: ${mainKeyword}
