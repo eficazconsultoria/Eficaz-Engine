@@ -1,0 +1,25 @@
+name: Keep Supabase Alive
+
+# Evita que o projeto Supabase (free tier) seja pausado por inatividade (~7 dias).
+# Roda segunda e quinta as 10h (horario de Brasilia = 13h UTC).
+
+on:
+  schedule:
+    - cron: "0 13 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Supabase respondeu: HTTP $STATUS"
+          if [ "$STATUS" -ge 500 ]; then
+            echo "::warning::Supabase retornou $STATUS - projeto pode estar pausado"
+            exit 1
+          fi
